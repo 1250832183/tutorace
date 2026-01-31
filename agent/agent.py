@@ -9,9 +9,11 @@ This agent provides voice-based tutoring sessions using:
 """
 
 import asyncio
+import json
 import logging
 from dotenv import load_dotenv
 
+from livekit import rtc
 from livekit.agents import (
     Agent,
     AgentSession,
@@ -90,7 +92,7 @@ async def entrypoint(ctx: JobContext):
             language="en",
         ),
         llm=openai.LLM(
-            model="gpt-4o-mini",
+            model="gpt-4.1-mini",
             temperature=0.7,
         ),
         tts=cartesia.TTS(
@@ -110,9 +112,30 @@ async def entrypoint(ctx: JobContext):
         room=ctx.room,
         agent=agent,
         room_input_options=RoomInputOptions(
-            participant=participant,
+            participant_identity=participant.identity,
         ),
     )
+    
+    # Set up data channel listener for text messages
+    @ctx.room.on("data_received")
+    def on_data_received(data_packet: rtc.DataPacket):
+        try:
+            message = json.loads(data_packet.data.decode('utf-8'))
+            logger.info(f"Received data message: {message}")
+            
+            if message.get('type') == 'text_message':
+                text = message.get('text', '')
+                if text:
+                    logger.info(f"Processing text message: {text}")
+                    # Create a task to handle the text message
+                    asyncio.create_task(handle_text_message(session, text))
+            
+            elif message.get('type') == 'next_topic':
+                logger.info("Next topic requested")
+                asyncio.create_task(handle_next_topic(session))
+                
+        except Exception as e:
+            logger.error(f"Error processing data message: {e}")
     
     # Initial greeting
     await session.say(
@@ -124,8 +147,34 @@ async def entrypoint(ctx: JobContext):
     
     logger.info("Agent started and greeting sent")
     
-    # Keep the session running
-    await session.wait()
+    # Keep the session running using the run() method
+    await session.run()
+
+
+async def handle_text_message(session: AgentSession, text: str):
+    """Handle incoming text messages as if they were spoken."""
+    try:
+        # Generate response using the LLM
+        logger.info(f"Generating response for: {text}")
+        
+        # Use generate_reply to process the text message
+        # This adds the message to history and generates a response
+        await session.generate_reply(user_input=text)
+        
+    except Exception as e:
+        logger.error(f"Error handling text message: {e}")
+        await session.say("I'm sorry, I had trouble processing that. Could you try again?")
+
+
+async def handle_next_topic(session: AgentSession):
+    """Handle request to move to the next topic."""
+    try:
+        await session.say(
+            "Great! Let's move on to the next topic. Are you ready to continue?",
+            allow_interruptions=True,
+        )
+    except Exception as e:
+        logger.error(f"Error handling next topic: {e}")
 
 
 def prewarm(proc: JobProcess):

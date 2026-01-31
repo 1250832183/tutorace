@@ -1,0 +1,20 @@
+{
+  "name": "tutorace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Voice Tutor - Interactive voice-based learning platform",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:web\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:web": "cd web && npm run dev",
+    "install:all": "npm install && cd server && npm install && cd ../web && npm install",
+    "build": "cd server && npm run build && cd ../web && npm run build",
+    "test": "cd server && npm test && cd ../web && npm test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
