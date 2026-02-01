@@ -1,6 +1,6 @@
 """
 Tutorace Voice Agent - Main Entry Point
-Version: 1.0.1 - GitHub Actions CI/CD
+Version: 1.0.2 - Using rtc_session decorator for explicit dispatch
 
 This agent provides voice-based tutoring sessions using:
 - LiveKit for real-time communication
@@ -20,12 +20,11 @@ from livekit.agents import (
     AgentSession,
     AutoSubscribe,
     JobContext,
-    JobProcess,
-    WorkerOptions,
-    cli,
-    llm,
     RoomInputOptions,
+    get_job_context,
 )
+from livekit.agents.cli import run_app
+from livekit.agents import AgentServer
 from livekit.plugins import cartesia, openai, silero
 
 # Load environment variables
@@ -34,6 +33,9 @@ load_dotenv()
 # Configure logging
 logger = logging.getLogger("tutorace-agent")
 logger.setLevel(logging.INFO)
+
+# Create the agent server
+server = AgentServer()
 
 
 class TutorAgent(Agent):
@@ -69,9 +71,11 @@ Remember: You're having a real-time voice conversation. Be natural, responsive, 
         )
 
 
+@server.rtc_session(agent_name="tutorace-tutor")
 async def entrypoint(ctx: JobContext):
     """
     Main entry point for the voice tutoring agent.
+    Uses rtc_session decorator with agent_name for explicit dispatch.
     """
     
     # Get room metadata (contains lesson plan info)
@@ -178,20 +182,5 @@ async def handle_next_topic(session: AgentSession):
         logger.error(f"Error handling next topic: {e}")
 
 
-def prewarm(proc: JobProcess):
-    """
-    Prewarm function called before the agent starts.
-    Used to load models and initialize resources.
-    """
-    proc.userdata["vad"] = silero.VAD.load()
-    logger.info("VAD model prewarmed")
-
-
 if __name__ == "__main__":
-    cli.run_app(
-        WorkerOptions(
-            entrypoint_fnc=entrypoint,
-            prewarm_fnc=prewarm,
-            agent_name="tutorace-tutor",  # Required for explicit dispatch
-        ),
-    )
+    run_app(server)
