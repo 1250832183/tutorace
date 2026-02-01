@@ -92,7 +92,7 @@ async def entrypoint(ctx: JobContext):
             language="en",
         ),
         llm=openai.LLM(
-            model="gpt-4.1-mini",
+            model="gpt-4o-mini",
             temperature=0.7,
         ),
         tts=cartesia.TTS(
