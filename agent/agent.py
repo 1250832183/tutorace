@@ -1,5 +1,6 @@
 """
 Tutorace Voice Agent - Main Entry Point
+Version: 1.0.1 - GitHub Actions CI/CD
 
 This agent provides voice-based tutoring sessions using:
 - LiveKit for real-time communication
