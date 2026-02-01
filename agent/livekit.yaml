@@ -1,0 +1,32 @@
+# LiveKit Cloud Agent Configuration
+# This file configures the agent for deployment on LiveKit Cloud
+
+name: tutorace-tutor
+description: AI-powered voice tutoring agent using Cartesia TTS/STT and GPT-4
+
+# Agent entry point
+entrypoint: agent.py
+
+# Python version
+python_version: "3.11"
+
+# Environment variables (set these in LiveKit Cloud console)
+# Required secrets:
+#   - OPENAI_API_KEY: Your OpenAI API key
+#   - CARTESIA_API_KEY: Your Cartesia API key
+
+# Worker configuration
+worker:
+  # Number of concurrent sessions per worker
+  max_jobs: 5
+  # Job timeout in seconds
+  job_timeout: 3600  # 1 hour max session
+
+# Health check
+health_check:
+  enabled: true
+  interval: 30
+
+# Logging
+logging:
+  level: INFO
