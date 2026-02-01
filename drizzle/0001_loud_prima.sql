@@ -1,0 +1,22 @@
+CREATE TABLE `videos` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`title` varchar(255) NOT NULL,
+	`sourceText` text NOT NULL,
+	`sourceType` enum('text','pdf','youtube','audio') NOT NULL DEFAULT 'text',
+	`voiceId` varchar(64) NOT NULL,
+	`backgroundVideoId` varchar(64) NOT NULL,
+	`backgroundMusicId` varchar(64),
+	`generatedScript` text,
+	`videoUrl` text,
+	`thumbnailUrl` text,
+	`duration` int,
+	`status` enum('pending','processing','completed','failed') NOT NULL DEFAULT 'pending',
+	`errorMessage` text,
+	`shareId` varchar(32),
+	`isPublic` enum('true','false') NOT NULL DEFAULT 'false',
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `videos_id` PRIMARY KEY(`id`),
+	CONSTRAINT `videos_shareId_unique` UNIQUE(`shareId`)
+);
