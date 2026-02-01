@@ -6,45 +6,41 @@ on:
       - main
     paths:
       - 'agent/**'
-      - '.github/workflows/deploy-agent.yml'
+      - '!agent/livekit.toml'
+      - '!agent/README.md'
+      - '!agent/**/*.md'
   workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
+    environment: agent
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install LiveKit CLI
-        run: |
-          curl -sSL https://get.livekit.io/cli | bash
-
-      - name: Configure LiveKit Project
-        run: |
-          lk project add tutorace \
-            --api-key ${{ secrets.LIVEKIT_API_KEY }} \
-            --api-secret ${{ secrets.LIVEKIT_API_SECRET }} \
-            --url ${{ secrets.LIVEKIT_URL }} \
-            --default
-
-      - name: Deploy Agent to LiveKit Cloud
-        working-directory: ./agent
+      - name: Deploy LiveKit Cloud Agent
+        uses: livekit/deploy-action@v2.12.1
         env:
           LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
           LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
-        run: |
-          yes | lk agent deploy \
-            --secrets "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }},CARTESIA_API_KEY=${{ secrets.CARTESIA_API_KEY }}" \
-            . || true
+          SECRET_LIST: ${{ secrets.SECRET_LIST }}
+        with:
+          OPERATION: deploy
+          WORKING_DIRECTORY: agent
 
-      - name: Check Agent Status
+      - name: Status Check
+        uses: livekit/deploy-action@v2.12.1
         env:
           LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
           LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
-        run: |
-          sleep 15
-          lk agent status || echo "Agent status check completed"
+        with:
+          OPERATION: status-retry
+          WORKING_DIRECTORY: agent
+          TIMEOUT: 5m
