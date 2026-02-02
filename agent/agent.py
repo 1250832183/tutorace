@@ -201,6 +201,7 @@ async def entrypoint(ctx: JobContext):
     
     # Track if we're currently teaching to avoid overlapping
     is_teaching = False
+    initial_greeting_done = False
     
     async def teach_slide(slide: Slide, is_first: bool = False):
         """Teach the content of a slide."""
@@ -255,8 +256,9 @@ async def entrypoint(ctx: JobContext):
                 slide_index = message.get('slideIndex', 0)
                 slide_title = message.get('slideTitle', '')
                 slide_script = message.get('slideScript', '')
+                is_initial = message.get('isInitial', False)
                 
-                logger.info(f"Slide changed to {slide_index}: {slide_title}")
+                logger.info(f"Slide changed to {slide_index}: {slide_title} (initial: {is_initial})")
                 
                 # Update agent's current slide
                 if agent.learning_unit:
@@ -270,7 +272,7 @@ async def entrypoint(ctx: JobContext):
                 )
                 
                 # Auto-teach the new slide
-                asyncio.create_task(teach_slide(slide, is_first=(slide_index == 0)))
+                asyncio.create_task(teach_slide(slide, is_first=is_initial))
             
             elif msg_type == 'next_topic':
                 logger.info("Next topic requested")
@@ -279,26 +281,9 @@ async def entrypoint(ctx: JobContext):
         except Exception as e:
             logger.error(f"Error processing data message: {e}")
     
-    # Initial greeting
-    if learning_unit and learning_unit.slides:
-        first_slide = learning_unit.slides[0]
-        greeting = (
-            f"Hey there! I'm Spark, your AI tutor. Today we're going to learn about "
-            f"{learning_unit.title}. We have {len(learning_unit.slides)} slides to cover. "
-            f"I'll teach you each slide as you navigate through them. "
-            f"Feel free to interrupt me anytime with questions! Let's start with the first slide."
-        )
-        await session.say(greeting, allow_interruptions=True)
-        
-        # Auto-teach the first slide
-        await teach_slide(first_slide, is_first=True)
-    else:
-        await session.say(
-            "Hey there! I'm Spark, your AI tutor. I'm excited to help you learn today! "
-            "What would you like to study? You can tell me a topic, or if you've uploaded "
-            "some materials, I can help explain those.",
-            allow_interruptions=True,
-        )
+    # Initial greeting - wait for slide_change event to start teaching
+    # The frontend will send slide_change with isInitial=true after connection
+    initial_greeting_done = True  # Mark as done so we don't skip the first slide_change
     
     logger.info("Agent started and greeting sent")
     
