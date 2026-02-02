@@ -1,0 +1,9 @@
+# LiveKit Agent Configuration
+# This file is required for deploying agents to LiveKit Cloud
+
+[agent]
+name = "tutorace-tutor"
+entrypoint = "agent.py"
+
+[build]
+dockerfile = "Dockerfile"
