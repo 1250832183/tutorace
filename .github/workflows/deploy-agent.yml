@@ -30,10 +30,10 @@ jobs:
           LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
           SECRET_LIST: ${{ secrets.SECRET_LIST }}
+          AGENT_IDS: CA_VGx9kiC4chuE
         with:
           OPERATION: deploy
           WORKING_DIRECTORY: agent
-          AGENT_IDS: CA_VGx9kiC4chuE
 
       - name: Status Check
         uses: livekit/deploy-action@v2.12.1
