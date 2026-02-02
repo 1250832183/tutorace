@@ -33,6 +33,7 @@ jobs:
         with:
           OPERATION: deploy
           WORKING_DIRECTORY: agent
+          AGENT_IDS: CA_VGx9kiC4chuE
 
       - name: Status Check
         uses: livekit/deploy-action@v2.12.1
