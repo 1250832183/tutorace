@@ -29,6 +29,7 @@ from livekit.agents import (
 from livekit.agents.cli import run_app
 from livekit.agents import AgentServer
 from livekit.plugins import cartesia, openai, silero
+from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 # Load environment variables
 load_dotenv()
@@ -185,6 +186,7 @@ async def entrypoint(ctx: JobContext):
             speed=1.0,
         ),
         allow_interruptions=True,
+        turn_detection=MultilingualModel(),
     )
 
     # Create the tutor agent with learning unit

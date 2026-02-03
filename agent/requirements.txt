@@ -1,5 +1,6 @@
 # LiveKit Agents Framework
 livekit-agents[cartesia,openai,silero]~=1.3
+livekit-plugins-turn-detector~=1.3
 
 # Additional dependencies
 python-dotenv>=1.0.0
