@@ -2,45 +2,45 @@ name: Deploy LiveKit Agent
 
 on:
   push:
-      branches:
-            - main
-                paths:
-                      - 'agent/**'
-                            - '!agent/livekit.toml'
-                                  - '!agent/README.md'
-                                        - '!agent/**/*.md'
-                                          workflow_dispatch:
+    branches:
+      - main
+    paths:
+      - 'agent/**'
+      - '!agent/livekit.toml'
+      - '!agent/README.md'
+      - '!agent/**/*.md'
+  workflow_dispatch:
 
-                                          jobs:
-                                            deploy:
-                                                runs-on: ubuntu-latest
-                                                    concurrency:
-                                                          group: ${{ github.workflow }}-${{ github.ref }}
-                                                                cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
-                                                                    steps:
-                                                                          - name: Checkout code
-                                                                                  uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-                                                                                        - name: Deploy LiveKit Cloud Agent
-                                                                                                uses: livekit/deploy-action@v2.12.1
-                                                                                                        env:
-                                                                                                                  LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
-                                                                                                                            LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
-                                                                                                                                      LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
-                                                                                                                                                SECRET_LIST: ${{ secrets.SECRET_LIST }}
-                                                                                                                                                          INPUT_AGENT_IDS: CA_VGx9kiC4chuE
-                                                                                                                                                                  with:
-                                                                                                                                                                            OPERATION: deploy
-                                                                                                                                                                                      WORKING_DIRECTORY: agent
-                                                                                                                                                                                      
-                                                                                                                                                                                            - name: Status Check
-                                                                                                                                                                                                    uses: livekit/deploy-action@v2.12.1
-                                                                                                                                                                                                            env:
-                                                                                                                                                                                                                      LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
-                                                                                                                                                                                                                                LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
-                                                                                                                                                                                                                                          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
-                                                                                                                                                                                                                                                  with:
-                                                                                                                                                                                                                                                            OPERATION: status-retry
-                                                                                                                                                                                                                                                                      WORKING_DIRECTORY: agent
-                                                                                                                                                                                                                                                                                TIMEOUT: 5m
+      - name: Deploy LiveKit Cloud Agent
+        uses: livekit/deploy-action@v2.12.1
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          SECRET_LIST: ${{ secrets.SECRET_LIST }}
+          INPUT_AGENT_IDS: CA_VGx9kiC4chuE
+        with:
+          OPERATION: deploy
+          WORKING_DIRECTORY: agent
+
+      - name: Status Check
+        uses: livekit/deploy-action@v2.12.1
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+        with:
+          OPERATION: status-retry
+          WORKING_DIRECTORY: agent
+          TIMEOUT: 5m
