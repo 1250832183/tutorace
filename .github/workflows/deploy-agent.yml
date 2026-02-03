@@ -1,6 +1,8 @@
 name: Deploy LiveKit Agent
 
 
+
+
 on:
   push:
     branches:
@@ -13,6 +15,8 @@ on:
   workflow_dispatch:
 
 
+
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,9 +25,13 @@ jobs:
       cancel-in-progress: true
 
 
+
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+
 
 
       - name: Deploy LiveKit Cloud Agent
@@ -33,10 +41,12 @@ jobs:
           LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
           SECRET_LIST: ${{ secrets.SECRET_LIST }}
-          AGENT_IDS: CA_VGx9kiC4chuE
-        with:
+                  with:
           OPERATION: deploy
+          AGENT_IDS: CA_VGx9kiC4chuE
           WORKING_DIRECTORY: agent
+
+
 
 
       - name: Status Check
