@@ -1,5 +1,6 @@
 name: Deploy LiveKit Agent
 
+
 on:
   push:
     branches:
@@ -11,17 +12,19 @@ on:
       - '!agent/**/*.md'
   workflow_dispatch:
 
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: agent
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
 
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
 
       - name: Deploy LiveKit Cloud Agent
         uses: livekit/deploy-action@v2.12.1
@@ -34,6 +37,7 @@ jobs:
         with:
           OPERATION: deploy
           WORKING_DIRECTORY: agent
+
 
       - name: Status Check
         uses: livekit/deploy-action@v2.12.1
