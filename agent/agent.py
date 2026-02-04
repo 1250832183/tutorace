@@ -221,16 +221,25 @@ async def entrypoint(ctx: JobContext):
     
     # Track if we're currently teaching to avoid overlapping
     is_teaching = False
+    # Track current slide index to detect slide changes during teaching
+    current_teaching_slide_index = -1
     
     async def teach_slide(slide: Slide, is_first: bool = False):
         """Teach the content of a slide."""
-        nonlocal is_teaching
+        nonlocal is_teaching, current_teaching_slide_index
         
-        if is_teaching:
-            logger.info("Already teaching, skipping duplicate request")
+        # If we're teaching a different slide, interrupt and teach the new one
+        if is_teaching and slide.index != current_teaching_slide_index:
+            logger.info(f"Interrupting teaching of slide {current_teaching_slide_index} to teach slide {slide.index}")
+            session.interrupt()
+            # Small delay to allow interruption to complete
+            await asyncio.sleep(0.3)
+        elif is_teaching and slide.index == current_teaching_slide_index:
+            logger.info(f"Already teaching slide {slide.index}, skipping duplicate request")
             return
         
         is_teaching = True
+        current_teaching_slide_index = slide.index
         try:
             if slide.script:
                 # Use the pre-generated script as teaching content
@@ -256,6 +265,7 @@ async def entrypoint(ctx: JobContext):
                 )
         finally:
             is_teaching = False
+            current_teaching_slide_index = -1
     
     async def handle_text_message(text: str, slide_context: str = ""):
         """Handle incoming text messages as if they were spoken."""
