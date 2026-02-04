@@ -219,7 +219,8 @@ async def entrypoint(ctx: JobContext):
             if slide.script:
                 # Use the pre-generated script as teaching content
                 if is_first:
-                    intro = f"Let's begin with {slide.title}. "
+                    # Natural welcome + introduction for the first slide
+                    intro = f"Hey there! Welcome to your lesson. I'm Spark, your AI tutor, and I'm excited to learn with you today! Let's dive into {slide.title}. "
                 else:
                     intro = f"Now let's look at {slide.title}. "
                 
