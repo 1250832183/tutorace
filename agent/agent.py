@@ -310,7 +310,26 @@ async def entrypoint(ctx: JobContext):
             
             elif msg_type == 'resume':
                 logger.info("Resume requested")
-                # Resume will be handled by the next slide_change or user interaction
+                # Get current slide info from the message and continue teaching
+                slide_index = message.get('slideIndex', 0)
+                slide_title = message.get('slideTitle', '')
+                slide_script = message.get('slideScript', '')
+                
+                if slide_title or slide_script:
+                    # Create a slide object and continue teaching
+                    slide = Slide(
+                        index=slide_index,
+                        title=slide_title,
+                        script=slide_script,
+                    )
+                    logger.info(f"Resuming teaching slide {slide_index}: {slide_title}")
+                    asyncio.create_task(teach_slide(slide, is_first=False))
+                else:
+                    # No slide info, just acknowledge
+                    asyncio.create_task(session.say(
+                        "I'm ready to continue. What would you like to learn about?",
+                        allow_interruptions=True,
+                    ))
                 
         except Exception as e:
             logger.error(f"Error processing data message: {e}")
