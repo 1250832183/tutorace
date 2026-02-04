@@ -1,6 +1,6 @@
 """
 Tutorace Voice Agent - Main Entry Point
-Version: 2.0.0 - TutorMe MVP V5 with slide-based teaching
+Version: 2.1.0 - Fixed session.run() issue
 
 This agent provides voice-based tutoring sessions using:
 - LiveKit for real-time communication
@@ -120,6 +120,11 @@ Remember: You're having a real-time voice conversation. Be natural, responsive, 
         """Update the current slide index."""
         if self.learning_unit:
             self.learning_unit.current_slide_index = index
+    
+    async def on_enter(self):
+        """Called when the agent enters the session. Generate initial greeting."""
+        logger.info("Agent entered session, generating initial greeting")
+        self.session.generate_reply()
 
 
 def parse_learning_unit(data: Dict[str, Any]) -> Optional[LearningUnit]:
@@ -161,7 +166,7 @@ async def entrypoint(ctx: JobContext):
     except json.JSONDecodeError:
         logger.warning("Could not parse room metadata")
     
-    # Connect to the room
+    # Connect to the room first
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
     
     # Wait for a participant to join
@@ -192,18 +197,8 @@ async def entrypoint(ctx: JobContext):
     # Create the tutor agent with learning unit
     agent = TutorAgent(learning_unit=learning_unit)
     
-    # Start the session
-    await session.start(
-        room=ctx.room,
-        agent=agent,
-        room_input_options=RoomInputOptions(
-            participant_identity=participant.identity,
-        ),
-    )
-    
     # Track if we're currently teaching to avoid overlapping
     is_teaching = False
-    initial_greeting_done = False
     
     async def teach_slide(slide: Slide, is_first: bool = False):
         """Teach the content of a slide."""
@@ -236,6 +231,34 @@ async def entrypoint(ctx: JobContext):
         finally:
             is_teaching = False
     
+    async def handle_text_message(text: str, slide_context: str = ""):
+        """Handle incoming text messages as if they were spoken."""
+        try:
+            logger.info(f"Generating response for: {text}")
+            
+            # Add slide context to the message if available
+            if slide_context:
+                context_text = f"[Context: Currently on slide '{slide_context}'] {text}"
+            else:
+                context_text = text
+            
+            # Generate response using the LLM
+            session.generate_reply(user_input=context_text)
+            
+        except Exception as e:
+            logger.error(f"Error handling text message: {e}")
+            await session.say("I'm sorry, I had trouble processing that. Could you try again?")
+    
+    async def handle_next_topic():
+        """Handle request to move to the next topic."""
+        try:
+            await session.say(
+                "Great! Navigate to the next slide and I'll teach you about it.",
+                allow_interruptions=True,
+            )
+        except Exception as e:
+            logger.error(f"Error handling next topic: {e}")
+    
     # Set up data channel listener for messages from frontend
     @ctx.room.on("data_received")
     def on_data_received(data_packet: rtc.DataPacket):
@@ -251,7 +274,7 @@ async def entrypoint(ctx: JobContext):
                 slide_title = message.get('slideTitle', '')
                 if text:
                     logger.info(f"Processing text message: {text} (slide: {slide_title})")
-                    asyncio.create_task(handle_text_message(session, text, slide_title))
+                    asyncio.create_task(handle_text_message(text, slide_title))
             
             elif msg_type == 'slide_change':
                 # Handle slide navigation - AUTO TEACH THE NEW SLIDE
@@ -278,49 +301,41 @@ async def entrypoint(ctx: JobContext):
             
             elif msg_type == 'next_topic':
                 logger.info("Next topic requested")
-                asyncio.create_task(handle_next_topic(session))
+                asyncio.create_task(handle_next_topic())
+            
+            elif msg_type == 'pause':
+                logger.info("Pause requested")
+                # Pause is handled by interrupting current speech
+                session.interrupt()
+            
+            elif msg_type == 'resume':
+                logger.info("Resume requested")
+                # Resume will be handled by the next slide_change or user interaction
                 
         except Exception as e:
             logger.error(f"Error processing data message: {e}")
     
-    # Initial greeting - wait for slide_change event to start teaching
-    # The frontend will send slide_change with isInitial=true after connection
-    initial_greeting_done = True  # Mark as done so we don't skip the first slide_change
+    # Start the session with the agent and room
+    # This is the correct way - don't call session.run() afterwards
+    await session.start(
+        agent=agent,
+        room=ctx.room,
+        room_input_options=RoomInputOptions(
+            participant_identity=participant.identity,
+        ),
+    )
     
-    logger.info("Agent started and greeting sent")
+    logger.info("Agent started and session is running")
     
-    # Keep the session running
-    await session.run()
-
-
-async def handle_text_message(session: AgentSession, text: str, slide_context: str = ""):
-    """Handle incoming text messages as if they were spoken."""
+    # Keep the session alive by waiting for shutdown
+    # The session will handle all voice interactions automatically
     try:
-        logger.info(f"Generating response for: {text}")
-        
-        # Add slide context to the message if available
-        if slide_context:
-            context_text = f"[Context: Currently on slide '{slide_context}'] {text}"
-        else:
-            context_text = text
-        
-        # Generate response using the LLM
-        await session.generate_reply(user_input=context_text)
-        
-    except Exception as e:
-        logger.error(f"Error handling text message: {e}")
-        await session.say("I'm sorry, I had trouble processing that. Could you try again?")
-
-
-async def handle_next_topic(session: AgentSession):
-    """Handle request to move to the next topic."""
-    try:
-        await session.say(
-            "Great! Navigate to the next slide and I'll teach you about it.",
-            allow_interruptions=True,
-        )
-    except Exception as e:
-        logger.error(f"Error handling next topic: {e}")
+        # Wait indefinitely - the session handles everything
+        await asyncio.Event().wait()
+    except asyncio.CancelledError:
+        logger.info("Agent session cancelled")
+    finally:
+        await session.aclose()
 
 
 if __name__ == "__main__":
