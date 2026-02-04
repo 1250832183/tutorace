@@ -97,6 +97,13 @@ Guidelines:
 - After answering a question, ALWAYS end with "Feel free to ask more questions, or click the arrow to continue to the next slide!"
 - Use enthusiasm in your voice (vary your tone and pace)
 
+When answering questions:
+- Start with a brief, 2-3 sentence answer that directly addresses the question
+- If the student asks for more details or seems interested, then expand
+- Match the depth of your answer to the depth of the question
+- A simple "what is X?" question deserves a simple answer, not a comprehensive lecture
+- If the student says "too long" or seems impatient, immediately give a shorter summary
+
 When teaching a slide:
 1. Start by introducing the topic
 2. Explain ALL the key concepts from the script thoroughly
@@ -220,7 +227,7 @@ async def entrypoint(ctx: JobContext):
                 # Use the pre-generated script as teaching content
                 if is_first:
                     # Natural welcome + introduction for the first slide
-                    intro = f"Hey there! Welcome to your lesson. I'm Spark, your AI tutor, and I'm excited to learn with you today! Let's dive into {slide.title}. "
+                    intro = f"Hey there! Welcome to your lesson. I'm Spark, your AI tutor, and I'm excited to learn with you today! Let's explore {slide.title}. "
                 else:
                     intro = f"Now let's look at {slide.title}. "
                 
