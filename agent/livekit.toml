@@ -6,5 +6,8 @@ name = "tutorace-tutor"
 id = "CA_VGx9kiC4chuE"
 entrypoint = "agent.py"
 
+[project]
+subdomain = "tutorace-sky7fsol"
+
 [build]
 dockerfile = "Dockerfile"
