@@ -222,15 +222,18 @@ async def entrypoint(ctx: JobContext):
                 else:
                     intro = f"Now let's look at {slide.title}. "
                 
-                # Teach the slide content
+                # Teach the slide content with navigation guidance at the end
+                teaching_content = intro + slide.script
+                # Add navigation guidance at the end
+                teaching_content += " When you're ready, click the arrow to continue to the next slide!"
                 await session.say(
-                    intro + slide.script,
+                    teaching_content,
                     allow_interruptions=True,
                 )
             else:
-                # No script, just introduce the topic
+                # No script, just introduce the topic with navigation guidance
                 await session.say(
-                    f"This slide is about {slide.title}. Feel free to ask me any questions about it!",
+                    f"This slide is about {slide.title}. Feel free to ask me any questions, or click the arrow to continue to the next slide!",
                     allow_interruptions=True,
                 )
         finally:
