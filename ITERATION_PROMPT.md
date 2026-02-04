@@ -7,23 +7,30 @@
 ## 🚀 启动迭代提示词（复制即用）
 
 ```
-请阅读 GitHub 仓库 ZHouliRic/tutorace 中的 AGENT_ITERATION_SOP.md 文档，这是 Agent 迭代的唯一真相文档。
+请阅读 GitHub 仓库 ZHouliRic/tutorace 中的以下文档：
+
+1. AGENT_ITERATION_SOP.md - 迭代规约文档（固定不变）
+2. CURRENT_ISSUES.md - 当前待修复问题
+3. iterations/ 目录 - 迭代历史归档
 
 按照 SOP 中的迭代流程，执行一轮完整的 Agent 行为优化迭代：
 
-1. 首先阅读 SOP 文档，了解设计哲学、当前系统状态和已知问题
-2. 分析当前系统的已知能力和可能的盲区
-3. 生成一个新的对抗性 Persona（不是从库中选择，而是设计一个能发现系统弱点的新 Persona）
-4. 访问 TutorAce 应用，选择一个课程开始 E2E 测试
-5. 以该对抗性 Persona 的视角体验完整的教学流程，用文字输入模拟语音对话
-6. 记录发现的问题，使用 SOP 中的问题记录模板
-7. 以产品设计师视角分析问题，遵循 "Less Structure, More Intelligence" 哲学
-8. 实现修复并部署
-9. 验证修复效果
-10. 更新 SOP 文档：
-    - 将新的对抗性 Persona 添加到 Persona 历史
-    - 更新迭代历史
-    - 更新待修复问题列表
+Phase 1: 对抗性 Persona 生成
+- 阅读 iterations/ 目录中的历史迭代，了解系统已知能力
+- 分析系统可能的盲区
+- 生成一个新的对抗性 Persona（目的是发现系统弱点）
+
+Phase 2: E2E 模拟测试
+- 访问 TutorAce 应用
+- 选择一个课程开始 Session
+- 以对抗性 Persona 的视角体验完整的教学流程
+- 用文字输入模拟语音对话
+
+Phase 3-7: 问题收集、设计思考、实现修复、部署验证、回归测试
+
+Phase 8: 归档
+- 在 iterations/ 目录创建新的归档文件 iteration_XXX.md
+- 更新 CURRENT_ISSUES.md
 
 核心原则：
 - 不要通过增加按钮、模式、选项来解决问题
@@ -35,45 +42,22 @@
 
 ---
 
-## 🎯 对抗性 Persona 生成指南
-
-每次迭代需要生成一个新的对抗性 Persona。生成时考虑以下问题：
-
-**分析系统盲区：**
-- 当前系统已经能处理什么场景？
-- 什么场景可能还没有被测试过？
-- 什么用户行为可能会让系统表现不佳？
-
-**设计对抗性行为：**
-- 这个 Persona 会做什么系统可能处理不好的事情？
-- 这个 Persona 的极端行为是什么？
-- 这个 Persona 会如何"挑战"系统？
-
-**对抗性 Persona 示例方向：**
-- 沉默型用户 - 几乎不说话，只是听和翻页
-- 跑题型用户 - 经常问与课程无关的问题
-- 技术故障型用户 - 模拟网络延迟、重复发送消息
-- 多语言用户 - 用中英文混合提问
-- 专家型用户 - 问超出课程范围的深度问题
-- 情绪波动型用户 - 一会儿很积极，一会儿很消极
-- 测试边界型用户 - 故意说一些模糊或矛盾的话
-
----
-
-## 🔧 修复特定问题的启动提示词
+## 🔧 修复当前问题的启动提示词
 
 ```
-请阅读 GitHub 仓库 ZHouliRic/tutorace 中的 AGENT_ITERATION_SOP.md 文档。
+请阅读 GitHub 仓库 ZHouliRic/tutorace 中的以下文档：
 
-修复 SOP 中记录的待修复问题：
-- 问题 #[编号]: [问题描述]
+1. AGENT_ITERATION_SOP.md - 迭代规约文档
+2. CURRENT_ISSUES.md - 当前待修复问题
+
+修复 CURRENT_ISSUES.md 中优先级最高的问题：
 
 按照 SOP 流程：
 1. 分析问题根因
 2. 设计修复方案（遵循 Less Structure 哲学）
 3. 实现并部署
 4. E2E 验证
-5. 更新 SOP 迭代历史
+5. 更新 CURRENT_ISSUES.md（将问题移至"已修复"）
 
 开始修复！
 ```
@@ -94,8 +78,28 @@
 - [ ] 翻页后 Agent 自动开始教学
 - [ ] Agent 能理解用户反馈并调整行为
 
-使用 SOP 中 Persona 历史里的任意一个 Persona 完成一次完整的教学流程，记录测试结果。
+阅读 iterations/ 目录中的历史 Persona，选择一个进行完整的教学流程测试，记录测试结果。
 ```
+
+---
+
+## 📂 文档结构说明
+
+```
+AGENT_ITERATION_SOP.md      ← 规约文档（固定不变）
+ITERATION_PROMPT.md         ← 本文档（启动提示词）
+CURRENT_ISSUES.md           ← 当前待修复问题（动态更新）
+iterations/                 ← 迭代历史归档目录
+  ├── iteration_000.md      ← 初始版本
+  ├── iteration_001.md      ← 第一轮迭代
+  └── ...
+```
+
+**规则：**
+- `AGENT_ITERATION_SOP.md` 内容固定，定义迭代的规则和流程
+- 每次迭代完成后，在 `iterations/` 目录创建新的归档文件
+- `CURRENT_ISSUES.md` 记录当前待修复问题，修复后移至归档
+- 迭代历史不污染规约文档，保持上下文清洁
 
 ---
 
@@ -107,20 +111,21 @@
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │   ┌─────────────┐    ┌─────────┐    ┌─────────┐            │
-│   │ 分析系统    │───▶│ 生成    │───▶│ E2E     │            │
-│   │ 盲区        │    │ 对抗性  │    │ 测试    │            │
+│   │ 阅读归档    │───▶│ 生成    │───▶│ E2E     │            │
+│   │ 分析盲区    │    │ 对抗性  │    │ 测试    │            │
 │   │             │    │ Persona │    │         │            │
 │   └─────────────┘    └─────────┘    └─────────┘            │
 │          ▲                               │                  │
 │          │                               ▼                  │
 │   ┌─────────────┐    ┌─────────┐    ┌─────────┐            │
-│   │ 更新 SOP    │◀───│ 部署    │◀───│ 设计    │            │
-│   │ 归档 Persona│    │ 验证    │    │ 修复    │            │
+│   │ 创建归档    │◀───│ 部署    │◀───│ 设计    │            │
+│   │ 更新 Issues │    │ 验证    │    │ 修复    │            │
 │   └─────────────┘    └─────────┘    └─────────┘            │
 │                                                             │
+│   规约文档: AGENT_ITERATION_SOP.md（固定不变）              │
+│   当前问题: CURRENT_ISSUES.md（动态更新）                   │
+│   迭代历史: iterations/（归档备查）                         │
 │   设计哲学: Less Structure, More Intelligence               │
-│   唯一真相: AGENT_ITERATION_SOP.md                          │
-│   Persona 策略: 对抗性生成（发现系统边界）                   │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -131,7 +136,7 @@
 
 1. **每次迭代生成新的对抗性 Persona** - 不是从固定库中选择
 2. **对抗性 Persona 的目的是发现系统弱点** - 不是模拟普通用户
-3. **每次迭代后必须更新 SOP 文档** - 记录 Persona 历史和迭代历史
+3. **规约文档固定不变** - 只有 CURRENT_ISSUES.md 和 iterations/ 会更新
 4. **遵循设计哲学** - 不添加按钮和选项，让 Agent 更智能
 5. **使用标准模板** - 问题记录使用 SOP 中的模板
 6. **先修复后回归** - 修复问题后要进行回归测试
@@ -141,8 +146,8 @@
 
 ## 📍 关键链接
 
-- **SOP 文档**: `ZHouliRic/tutorace/AGENT_ITERATION_SOP.md`
+- **GitHub 仓库**: `https://github.com/ZHouliRic/tutorace`
 - **TutorAce 应用**: `https://3000-isolcal74osb4qj3i0f4o-36d55f39.sg1.manus.computer/`
 - **GitHub Actions**: `https://github.com/ZHouliRic/tutorace/actions`
-- **Agent 代码**: `ZHouliRic/tutorace/agent/agent.py`
+- **Agent 代码**: `agent/agent.py`
 
