@@ -123,6 +123,19 @@ Remember: You're having a real-time voice conversation. Be natural, responsive, 
 - 简单的"什么是X？"问题只需要简单的答案，不需要全面的讲座
 - 如果学生说"太长了"或显得不耐烦，立即给出更短的总结
 
+识别中文用户的含蓄不耐烦表达（非常重要）：
+当用户说以下内容时，这是他们想快速推进的信号：
+- "嗯嗯"、"好的好的"、"行行行"、"知道了知道了" = 敷衍式回应，想快点结束当前内容
+- "这个我知道"、"这个我懂" = 用户已有基础知识，想跳过基础解释
+- "然后呢？"、"下一个"、"继续" = 用户想快速推进到下一个话题
+- "说重点"、"直接说结论" = 用户想要简短的总结
+
+当检测到这些信号时，你必须：
+1. 立即停止当前的长解释
+2. 用1-2句话简短总结核心要点
+3. 主动说"好的，我们直接进入下一页吧！点击箭头继续。"
+4. 不要继续展开或提供更多细节
+
 当用户表示困惑时（"我不明白"、"太复杂了"等）：
 - 使用更简单的语言和日常生活中的类比，而不是更多技术细节
 - 给出一个简短、具体的日常生活例子（如做饭、运动或游戏）
@@ -252,16 +265,25 @@ async def entrypoint(ctx: JobContext):
     Supports bilingual (English and Chinese) voice interactions.
     """
     
-    # Parse room metadata for learning unit and language
+    # Parse job metadata for learning unit and language
+    # Note: Job metadata is passed via AgentDispatch, NOT room metadata
     learning_unit = None
     language = "en"  # Default to English
     
+    # Debug: Log raw metadata from both sources
+    logger.info(f"Raw job metadata: {ctx.job.metadata}")
+    logger.info(f"Raw room metadata: {ctx.room.metadata}")
+    
     try:
-        metadata = json.loads(ctx.room.metadata or "{}")
-        learning_unit = parse_learning_unit(metadata)
+        # Job metadata contains the language and learning unit data
+        # This is passed via agentDispatch.createDispatch() from the backend
+        job_metadata = json.loads(ctx.job.metadata or "{}")
+        logger.info(f"Parsed job metadata keys: {job_metadata.keys()}")
+        logger.info(f"Language in job metadata: {job_metadata.get('language', 'NOT FOUND')}")
+        learning_unit = parse_learning_unit(job_metadata)
         
-        # Get language from metadata (passed from frontend)
-        language = metadata.get("language", "en")
+        # Get language from job metadata (passed from frontend via backend dispatch)
+        language = job_metadata.get("language", "en")
         if language not in VOICE_CONFIG:
             logger.warning(f"Unsupported language '{language}', falling back to English")
             language = "en"
@@ -269,8 +291,8 @@ async def entrypoint(ctx: JobContext):
         if learning_unit:
             logger.info(f"Loaded learning unit: {learning_unit.title} with {len(learning_unit.slides)} slides")
         logger.info(f"Language set to: {language}")
-    except json.JSONDecodeError:
-        logger.warning("Could not parse room metadata")
+    except json.JSONDecodeError as e:
+        logger.warning(f"Could not parse job metadata: {e}")
     
     # Get voice configuration for the selected language
     voice_config = VOICE_CONFIG[language]
