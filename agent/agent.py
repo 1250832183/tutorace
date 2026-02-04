@@ -127,9 +127,10 @@ Remember: You're having a real-time voice conversation. Be natural, responsive, 
             self.learning_unit.current_slide_index = index
     
     async def on_enter(self):
-        """Called when the agent enters the session. Generate initial greeting."""
-        logger.info("Agent entered session, generating initial greeting")
-        self.session.generate_reply()
+        """Called when the agent enters the session."""
+        # Do NOT generate a greeting here - wait for slide_change event to start teaching
+        # This avoids unnatural greetings like "Got it!" before the actual lesson
+        logger.info("Agent entered session, waiting for slide_change event to start teaching")
 
 
 def parse_learning_unit(data: Dict[str, Any]) -> Optional[LearningUnit]:
