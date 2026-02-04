@@ -27,6 +27,19 @@
 
 ---
 
+## 项目部署
+
+**TutorAce 是一个 Manus 项目，包含两个部分：**
+
+| 组件 | 部署位置 | 链接 |
+|------|---------|------|
+| 前端 (Web) | Manus | https://brvidgen-2xelusrb.manus.space |
+| Agent (Voice) | LiveKit Cloud | 通过 GitHub Actions 自动部署 |
+
+**GitHub 仓库**: https://github.com/ZHouliRic/tutorace
+
+---
+
 ## 文档结构
 
 ```
