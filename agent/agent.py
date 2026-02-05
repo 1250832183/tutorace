@@ -29,6 +29,8 @@ from livekit.agents import (
     RoomInputOptions,
 )
 from livekit.agents.tts import FallbackAdapter as TTSFallbackAdapter
+from livekit.agents.stt import FallbackAdapter as STTFallbackAdapter
+from livekit.agents.stt import StreamAdapter as STTStreamAdapter
 from livekit.agents.cli import run_app
 from livekit.agents import AgentServer
 from livekit.plugins import cartesia, openai, silero
@@ -456,12 +458,34 @@ async def entrypoint(ctx: JobContext):
         max_retry_per_tts=2,
     )
     
-    session = AgentSession(
-        vad=silero.VAD.load(),
-        stt=cartesia.STT(
-            model="ink-whisper",
+    # Configure STT with fallback: Cartesia primary, OpenAI Whisper backup
+    # This helps handle cases where Cartesia STT fails due to network issues
+    vad = silero.VAD.load()
+    
+    primary_stt = cartesia.STT(
+        model="ink-whisper",
+        language=voice_config["language"],
+    )
+    
+    # OpenAI STT (Whisper) as fallback - wrap with StreamAdapter for streaming support
+    # Note: OpenAI STT doesn't support streaming natively, so we use StreamAdapter
+    fallback_stt = STTStreamAdapter(
+        stt=openai.STT(
+            model="whisper-1",
             language=voice_config["language"],
         ),
+        vad=vad,
+    )
+    
+    # Create STT with fallback mechanism
+    stt_with_fallback = STTFallbackAdapter(
+        [primary_stt, fallback_stt],
+        max_retry_per_stt=2,
+    )
+    
+    session = AgentSession(
+        vad=vad,
+        stt=stt_with_fallback,
         llm=openai.LLM(
             model="gpt-4o-mini",
             temperature=0.7,
