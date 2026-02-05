@@ -28,6 +28,7 @@ from livekit.agents import (
     JobContext,
     RoomInputOptions,
 )
+from livekit.agents.tts import FallbackAdapter as TTSFallbackAdapter
 from livekit.agents.cli import run_app
 from livekit.agents import AgentServer
 from livekit.plugins import cartesia, openai, silero
@@ -433,6 +434,28 @@ async def entrypoint(ctx: JobContext):
     logger.info(f"Participant joined: {participant.identity}")
 
     # Create the agent session with Cartesia TTS/STT configured for the selected language
+    # Configure TTS with fallback: Cartesia primary, OpenAI backup
+    # This helps handle cases where Cartesia fails due to network issues
+    primary_tts = cartesia.TTS(
+        model="sonic-3",
+        voice=voice_config["voice_id"],
+        language=voice_config["language"],
+        speed=1.0,
+    )
+    
+    # OpenAI TTS as fallback - supports multiple languages
+    # Use 'nova' voice which works well for both English and Chinese
+    fallback_tts = openai.TTS(
+        model="tts-1",
+        voice="nova",
+    )
+    
+    # Create TTS with fallback mechanism
+    tts_with_fallback = TTSFallbackAdapter(
+        [primary_tts, fallback_tts],
+        max_retry_per_tts=2,
+    )
+    
     session = AgentSession(
         vad=silero.VAD.load(),
         stt=cartesia.STT(
@@ -443,12 +466,7 @@ async def entrypoint(ctx: JobContext):
             model="gpt-4o-mini",
             temperature=0.7,
         ),
-        tts=cartesia.TTS(
-            model="sonic-3",
-            voice=voice_config["voice_id"],
-            language=voice_config["language"],
-            speed=1.0,
-        ),
+        tts=tts_with_fallback,
         allow_interruptions=True,
         turn_detection=MultilingualModel(),
     )
