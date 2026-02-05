@@ -125,6 +125,21 @@ iterations/                 ← 迭代历史归档目录
 
 修改 Agent 代码（主要是 `agent/agent.py` 中的 instructions 或行为逻辑）
 
+**Agent Prompt 多语言同步规则（必须遵守）：**
+
+当修改 Agent 的行为规则（`agent/agent.py` 中的 `SYSTEM_PROMPTS`）时：
+1. **必须同时更新英文和中文两个版本的 prompt**
+2. 两个版本的规则内容必须语义一致
+3. 修改后需要分别用英文和中文进行 E2E 测试验证
+4. 如果只修改了一个语言版本，视为未完成的迭代
+
+**检查清单：**
+- [ ] 英文 prompt (`SYSTEM_PROMPTS["en"]`) 已更新
+- [ ] 中文 prompt (`SYSTEM_PROMPTS["zh"]`) 已更新
+- [ ] 两个版本语义一致
+- [ ] 英文 E2E 测试通过
+- [ ] 中文 E2E 测试通过
+
 ### Phase 6: 部署验证
 
 1. 推送代码到 GitHub
