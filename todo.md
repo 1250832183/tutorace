@@ -1,33 +1,45 @@
-# Tutorace - AI Voice Tutoring Platform
+# Tutorace Project TODO
 
-## Core Features
+## Phase 1: Python Agent
+- [x] Basic agent structure (agent.py)
+- [x] Tutor agent with lesson plan support (tutor_agent.py)
+- [x] Cartesia TTS (Sonic 3) integration
+- [x] Cartesia STT (Ink-Whisper) integration
+- [x] OpenAI LLM integration (GPT-4.1-mini)
+- [ ] Add PDF content extraction support
+- [ ] Add dynamic lesson plan loading from API
+- [ ] Add progress tracking callbacks
 
-- [x] Home page with three learning options (Upload PDF, Enter Topic, Free Chat)
-- [x] Voice session page with LiveKit integration
-- [x] Lesson plan generation from topic (OpenAI)
+## Phase 2: Web Frontend
+- [x] Create React app with Vite
+- [x] LiveKit React SDK integration
+- [x] Voice control UI component
+- [x] Lesson plan panel component
+- [x] Voice session component with chat transcript
+- [x] Text input fallback for testing
+- [ ] Slides viewer component
+- [ ] Progress tracker component
+
+## Phase 3: Backend API
+- [x] Express server setup
 - [x] LiveKit room creation and token generation
-- [x] Real-time voice visualization
-- [x] Chat history display
-- [x] Text input alongside voice
+- [x] Lesson plan generation from topic (LLM)
+- [ ] PDF upload and parsing endpoint
+- [ ] Database schema (materials, lesson_plans, progress)
+- [ ] User authentication
 
-## Backend API
+## Phase 4: E2E Testing
+- [x] Agent connection test
+- [x] Voice output test (TTS streaming)
+- [x] Lesson plan generation test
+- [ ] Voice input test (requires microphone)
+- [ ] PDF upload and parsing test
+- [ ] Full flow test (upload → lesson plan → voice session)
 
-- [x] tRPC voice.createRoom - Create LiveKit room and get token
-- [x] tRPC voice.generateLessonPlan - Generate lesson plan from topic
+## Phase 5: Documentation & Deployment
+- [x] DESIGN.md - Complete system design document
+- [x] README.md - Project overview
+- [ ] Docker configuration
+- [ ] Environment variable documentation
+- [ ] API documentation
 
-## Components
-
-- [x] VoiceSession - Main voice interaction component (Session.tsx)
-- [x] VoiceVisualizer - Using LiveKit BarVisualizer
-- [x] LessonPlanPanel - Integrated in Session.tsx
-- [x] VoiceControlBar - Integrated in Session.tsx
-
-## Configuration
-
-- [x] LiveKit environment variables (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
-- [ ] OpenAI API key for lesson plan generation
-
-## Testing
-
-- [x] Unit tests for tRPC routes
-- [ ] E2E voice connection test
