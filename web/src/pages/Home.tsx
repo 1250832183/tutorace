@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
+import { trackEvent } from "@/lib/analytics";
 
 type AppState = "home" | "generating";
 
@@ -20,12 +21,46 @@ export default function Home() {
   const handleStartWithTopic = useCallback(async () => {
     if (!topicInput.trim()) return;
 
+    const startTime = Date.now();
+
     try {
+      // Track entry click
+      trackEvent({
+        name: 'lesson_entry_clicked',
+        properties: {
+          entry_type: 'topic',
+          topic_input: topicInput,
+        },
+      });
+
       setAppState("generating");
       setError(null);
 
+      // Track generation start
+      trackEvent({
+        name: 'lesson_generation_started',
+        properties: {
+          generation_type: 'topic',
+          source_name: topicInput,
+          topic: topicInput,
+        },
+      });
+
       // Generate lesson plan from topic
       const lessonPlan = await generateLessonPlanMutation.mutateAsync({ topic: topicInput });
+
+      // Track generation completion
+      trackEvent({
+        name: 'lesson_generation_completed',
+        properties: {
+          generation_type: 'topic',
+          source_name: topicInput,
+          lesson_plan_id: lessonPlan.id,
+          lesson_title: lessonPlan.title || topicInput,
+          topics_count: lessonPlan.topics?.length || 0,
+          generation_duration_ms: Date.now() - startTime,
+        },
+      });
 
       // Create voice room
       const roomConfig = await createRoomMutation.mutateAsync({ lessonPlanId: lessonPlan.id });
@@ -33,6 +68,17 @@ export default function Home() {
       // Navigate to session with state
       setLocation(`/session?token=${encodeURIComponent(roomConfig.token)}&wsUrl=${encodeURIComponent(roomConfig.wsUrl)}&lessonPlanId=${lessonPlan.id}`);
     } catch (err) {
+      // Track generation failure
+      trackEvent({
+        name: 'lesson_generation_failed',
+        properties: {
+          generation_type: 'topic',
+          source_name: topicInput,
+          error_message: err instanceof Error ? err.message : 'Unknown error',
+          generation_duration_ms: Date.now() - startTime,
+        },
+      });
+
       setError(err instanceof Error ? err.message : "An error occurred");
       setAppState("home");
     }
@@ -40,6 +86,14 @@ export default function Home() {
 
   const handleStartFreeChat = useCallback(async () => {
     try {
+      // Track entry click
+      trackEvent({
+        name: 'lesson_entry_clicked',
+        properties: {
+          entry_type: 'free_chat',
+        },
+      });
+
       setAppState("generating");
       setError(null);
 
